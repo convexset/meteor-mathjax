@@ -98,6 +98,6 @@ For a list of extensions from the [MathJax third-party extensions repository](ht
 ]
 ```
 
-### Equation Blocks and Numbering
+### Equation Numbering
 
-MathJax content is cached. But in the case of numbered equations in equation blocks, that can be counter productive. The `MathJaxHelper.reprocessEquationBlocks` setting exists deal with that problem. When true, equation blocks are processed anew without caching. It is set to `true` by default.
+To reset equation numbers: `MathJaxHelper.resetEquationNumbers()` (Easy, right?)

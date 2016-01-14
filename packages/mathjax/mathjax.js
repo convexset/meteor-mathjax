@@ -63,14 +63,6 @@ MathJaxHelper = (function() {
 		"http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=Accessible",
 	]);
 
-	var _reprocessEquationBlocks = true;
-	PackageUtilities.addPropertyGetterAndSetter(mjh, "reprocessEquationBlocks", {
-		get: () => _reprocessEquationBlocks,
-		set: (value) => {
-			_reprocessEquationBlocks = !!value;
-		},
-	});
-
 	var _script = mjh.SCRIPT_SRC[0];
 	var _config = PackageUtilities.deepCopy(DEFAULT_CONFIG);
 
@@ -137,6 +129,18 @@ MathJaxHelper = (function() {
 		})).toString(CryptoJS.enc.Base64);
 	});
 
+	var _firstRun = true;
+	PackageUtilities.addImmutablePropertyFunction(mjh, "resetEquationNumbers", function resetEquationNumbers() {
+		onMathJaxReady(function(MathJax) {
+			if (!_firstRun) {
+				MathJax.Hub.Queue(
+					["resetEquationNumbers", MathJax.InputJax.TeX], ["PreProcess", MathJax.Hub], ["Reprocess", MathJax.Hub]
+				);
+			}
+			_firstRun = false;
+		});
+	});
+
 	return mjh;
 })();
 
@@ -163,17 +167,31 @@ function onMathJaxReady(callback) {
 // Typeset with Cache
 var _cache = {};
 var doCachedTypeset = function(firstNode, lastNode) {
-	var alreadyThere = false;
+	var alreadyArrivedAtFirstNode = false;
 
 	$(firstNode).parent().contents().each(function(index, node) {
 		var cacheKey;
 		if (node === firstNode) {
-			alreadyThere = true;
+			alreadyArrivedAtFirstNode = true;
 		}
-		if (alreadyThere && node.nodeType === 1) {
+		if (alreadyArrivedAtFirstNode && (node.nodeType === 1)) {
 			var nodeContent = node.innerHTML;
 			cacheKey = MathJaxHelper.makeId(nodeContent);
-			var reprocess = MathJaxHelper.reprocessEquationBlocks && (nodeContent.toLowerCase("\\begin{equation}") > -1) && (nodeContent.toLowerCase("\\end{equation}") > -1);
+
+			// Do Not Use Cache
+			var reprocess = false;
+			// equation blocks
+			reprocess = reprocess || ((nodeContent.toLowerCase().indexOf("\\begin{equation}") > -1) && (nodeContent.toLowerCase().indexOf("\\end{equation}") > -1));
+			// multline blocks
+			reprocess = reprocess || ((nodeContent.toLowerCase().indexOf("\\begin{multline}") > -1) && (nodeContent.toLowerCase().indexOf("\\end{multline}") > -1));
+			// gather blocks
+			reprocess = reprocess || ((nodeContent.toLowerCase().indexOf("\\begin{gather}") > -1) && (nodeContent.toLowerCase().indexOf("\\end{gather}") > -1));
+			// align blocks
+			reprocess = reprocess || ((nodeContent.toLowerCase().indexOf("\\begin{align}") > -1) && (nodeContent.toLowerCase().indexOf("\\end{align}") > -1));
+			// tags
+			var tagRegex = /\tag{[A-Za-z_]+}/;
+			reprocess = reprocess || tagRegex.test(nodeContent.toLowerCase());
+
 			if (!reprocess && (typeof _cache[cacheKey] !== "undefined")) {
 				node.innerHTML = _cache[cacheKey];
 			} else {
