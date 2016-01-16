@@ -14,7 +14,9 @@ MathJax in Meteor. Configurable with [extensions](http://mathjax.readthedocs.org
   - [Script Choice](#script-choice)
   - [MathJax Configuration](#mathjax-configuration)
   - [Extensions](#extensions)
-  - [Equation Blocks and Numbering](#equation-blocks-and-numbering)
+  - [Equation Numbering](#equation-numbering)
+  - [Typesetting Callbacks](#typesetting-callbacks)
+  - [Pre-loading](#pre-loading)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
