@@ -136,10 +136,29 @@ MathJaxHelper = (function() {
 				MathJax.Hub.Queue(
 					["resetEquationNumbers", MathJax.InputJax.TeX], ["PreProcess", MathJax.Hub], ["Reprocess", MathJax.Hub]
 				);
+			} else {
+				MathJax.Hub.Queue(function() {
+					_firstRun = false;
+					MathJax.Hub.Queue(
+						["resetEquationNumbers", MathJax.InputJax.TeX], ["PreProcess", MathJax.Hub], ["Reprocess", MathJax.Hub]
+					);
+				});
 			}
-			_firstRun = false;
 		});
 	});
+
+	var _typesettingCallbacks = [];
+	PackageUtilities.addImmutablePropertyFunction(mjh, "addTypesettingCallback", function addTypesettingCallback(cbFn) {
+		if (_.isFunction(cbFn)) {
+			_typesettingCallbacks.push(cbFn);
+		} else {
+			throw "invalid-callback-function";
+		}
+	});
+
+	PackageUtilities.addMutablePropertyArray(mjh, "typesettingCallbacks", _typesettingCallbacks);
+
+	PackageUtilities.addImmutablePropertyFunction(mjh, "onMathJaxReady", onMathJaxReady);
 
 	return mjh;
 })();
@@ -148,13 +167,20 @@ MathJaxHelper = (function() {
 // Load MathJax
 function onMathJaxReady(callback) {
 	if (window.MathJax) {
-		callback(window.MathJax);
+		window.MathJax.Hub.Queue(function() {
+			callback(window.MathJax);
+		});
 	} else {
 		if (!onMathJaxReady.listeners) {
 			$.getScript(MathJaxHelper.loadScript()).done(function() {
 				MathJax.Hub.Config(MathJaxHelper.loadConfig());
 				while (onMathJaxReady.listeners.length > 0) {
-					onMathJaxReady.listeners.pop().call(null, window.MathJax);
+					(function() {
+						var callback = onMathJaxReady.listeners.pop();
+						window.MathJax.Hub.Queue(function() {
+							callback(window.MathJax);
+						});
+					})();
 				}
 			});
 			onMathJaxReady.listeners = [];
@@ -175,28 +201,42 @@ var doCachedTypeset = function(firstNode, lastNode) {
 			alreadyArrivedAtFirstNode = true;
 		}
 		if (alreadyArrivedAtFirstNode && (node.nodeType === 1)) {
-			var nodeContent = node.innerHTML;
-			cacheKey = MathJaxHelper.makeId(nodeContent);
+			var originalNodeContent = node.innerHTML;
+			cacheKey = MathJaxHelper.makeId(originalNodeContent);
 
 			// Do Not Use Cache
 			var reprocess = false;
 			// equation blocks
-			reprocess = reprocess || ((nodeContent.toLowerCase().indexOf("\\begin{equation}") > -1) && (nodeContent.toLowerCase().indexOf("\\end{equation}") > -1));
+			reprocess = reprocess || ((originalNodeContent.toLowerCase().indexOf("\\begin{equation}") > -1) && (originalNodeContent.toLowerCase().indexOf("\\end{equation}") > -1));
 			// multline blocks
-			reprocess = reprocess || ((nodeContent.toLowerCase().indexOf("\\begin{multline}") > -1) && (nodeContent.toLowerCase().indexOf("\\end{multline}") > -1));
+			reprocess = reprocess || ((originalNodeContent.toLowerCase().indexOf("\\begin{multline}") > -1) && (originalNodeContent.toLowerCase().indexOf("\\end{multline}") > -1));
 			// gather blocks
-			reprocess = reprocess || ((nodeContent.toLowerCase().indexOf("\\begin{gather}") > -1) && (nodeContent.toLowerCase().indexOf("\\end{gather}") > -1));
+			reprocess = reprocess || ((originalNodeContent.toLowerCase().indexOf("\\begin{gather}") > -1) && (originalNodeContent.toLowerCase().indexOf("\\end{gather}") > -1));
 			// align blocks
-			reprocess = reprocess || ((nodeContent.toLowerCase().indexOf("\\begin{align}") > -1) && (nodeContent.toLowerCase().indexOf("\\end{align}") > -1));
+			reprocess = reprocess || ((originalNodeContent.toLowerCase().indexOf("\\begin{align}") > -1) && (originalNodeContent.toLowerCase().indexOf("\\end{align}") > -1));
 			// tags
 			var tagRegex = /\tag{[A-Za-z_]+}/;
-			reprocess = reprocess || tagRegex.test(nodeContent.toLowerCase());
+			reprocess = reprocess || tagRegex.test(originalNodeContent.toLowerCase());
 
 			if (!reprocess && (typeof _cache[cacheKey] !== "undefined")) {
 				node.innerHTML = _cache[cacheKey];
+				MathJaxHelper.typesettingCallbacks.forEach(function(fn) {
+					fn.call({
+						originalText: originalNodeContent,
+						fromCache: true,
+						node: node
+					});
+				});
 			} else {
 				MathJax.Hub.Queue(["Typeset", MathJax.Hub, node], function() {
 					_cache[cacheKey] = node.innerHTML;
+					MathJaxHelper.typesettingCallbacks.forEach(function(fn) {
+						fn.call({
+							originalText: originalNodeContent,
+							fromCache: false,
+							node: node
+						});
+					});
 				});
 			}
 		}
@@ -214,9 +254,7 @@ MathJaxTemplates.forEach(function(tmpl) {
 	tmpl.onRendered(function() {
 		var instance = this;
 		onMathJaxReady(function() {
-			// Meteor.defer(function() {
 			doCachedTypeset(instance.firstNode, instance.lastNode);
-			// });
 		});
 	});
 });

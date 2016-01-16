@@ -101,3 +101,23 @@ For a list of extensions from the [MathJax third-party extensions repository](ht
 ### Equation Numbering
 
 To reset equation numbers: `MathJaxHelper.resetEquationNumbers()` (Easy, right?)
+
+### Typesetting Callbacks
+
+To add a callback following typesetting, call: `MathJaxHelper.addTypesettingCallback(callbackFunction)`
+
+### Pre-loading
+
+Here is a useful way to preload things:
+```javascript
+Meteor.startup(function() {
+    MathJaxHelper.onMathJaxReady(function(MathJax) {
+        // Warm Up the type setter
+        var div = document.createElement('div');
+        div.innerHTML = "$x$";
+        MathJax.Hub.Queue(["Typeset", MathJax.Hub, div], function() {
+            console.info("MathJax loaded.");
+        });
+    });
+});
+```
