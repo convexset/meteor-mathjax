@@ -53,14 +53,14 @@ MathJaxHelper = (function() {
 
 	// https://docs.mathjax.org/en/v2.5-latest/config-files.html
 	PackageUtilities.addImmutablePropertyArray(mjh, "SCRIPT_SRC", [
-		"http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML",
-		"http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=default",
-		"http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_HTMLorMML",
-		"http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML",
-		"http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=MML_HTMLorMML",
-		"http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=AM_HTMLorMML",
-		"http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG",
-		"http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=Accessible",
+		"https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML",
+		"https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=default",
+		"https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_HTMLorMML",
+		"https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML",
+		"https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=MML_HTMLorMML",
+		"https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=AM_HTMLorMML",
+		"https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG",
+		"https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=Accessible",
 	]);
 
 	var _script = mjh.SCRIPT_SRC[0];
