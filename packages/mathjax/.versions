@@ -6,7 +6,7 @@ blaze-tools@1.0.4
 caching-compiler@1.0.0
 caching-html-compiler@1.0.2
 check@1.1.0
-convexset:mathjax@0.1.2_2
+convexset:mathjax@0.1.2_3
 convexset:package-utils@0.1.9
 deps@1.0.9
 diff-sequence@1.0.1

@@ -107,11 +107,23 @@ To reset equation numbers: `MathJaxHelper.resetEquationNumbers()` (Easy, right?)
 
 ### Typesetting Callbacks
 
-To add a callback following typesetting, call: `MathJaxHelper.addTypesettingCallback(callbackFunction)`
+To add a callback to be executed before typesetting, call: `MathJaxHelper.addPreTypesettingCallback(callbackFunction)`
 
 Callback functions are called with a single argument of the form
 ```javascript
 {
+    cacheKey: cacheKey,
+    originalText: originalNodeContent,
+    node: node
+}
+```
+
+To add a callback to be executed after typesetting, call: `MathJaxHelper.addPostTypesettingCallback(callbackFunction)`
+
+Callback functions are called with a single argument of the form
+```javascript
+{
+    cacheKey: cacheKey,
     originalText: originalNodeContent,
     fromCache: true,  // ... or false, depending on whether there was a cache hit
     node: node

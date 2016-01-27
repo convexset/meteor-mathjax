@@ -150,16 +150,25 @@ MathJaxHelper = (function() {
 		});
 	});
 
-	var _typesettingCallbacks = [];
-	PackageUtilities.addImmutablePropertyFunction(mjh, "addTypesettingCallback", function addTypesettingCallback(cbFn) {
+	var _preTypesettingCallbacks = [];
+	var _postTypesettingCallbacks = [];
+	PackageUtilities.addImmutablePropertyFunction(mjh, "addPreTypesettingCallback", function addPreTypesettingCallback(cbFn) {
 		if (_.isFunction(cbFn)) {
-			_typesettingCallbacks.push(cbFn);
+			_preTypesettingCallbacks.push(cbFn);
+		} else {
+			throw "invalid-callback-function";
+		}
+	});
+	PackageUtilities.addImmutablePropertyFunction(mjh, "addPostTypesettingCallback", function addPostTypesettingCallback(cbFn) {
+		if (_.isFunction(cbFn)) {
+			_postTypesettingCallbacks.push(cbFn);
 		} else {
 			throw "invalid-callback-function";
 		}
 	});
 
-	PackageUtilities.addMutablePropertyArray(mjh, "typesettingCallbacks", _typesettingCallbacks);
+	PackageUtilities.addMutablePropertyArray(mjh, "preTypesettingCallbacks", _preTypesettingCallbacks);
+	PackageUtilities.addMutablePropertyArray(mjh, "postTypesettingCallbacks", _postTypesettingCallbacks);
 
 	PackageUtilities.addImmutablePropertyFunction(mjh, "onMathJaxReady", onMathJaxReady);
 
@@ -221,10 +230,19 @@ var doCachedTypeset = function(firstNode, lastNode) {
 			var tagRegex = /\tag{[A-Za-z_]+}/;
 			reprocess = reprocess || tagRegex.test(originalNodeContent.toLowerCase());
 
+			MathJaxHelper.preTypesettingCallbacks.forEach(function(fn) {
+				fn({
+					cacheKey: cacheKey,
+					originalText: originalNodeContent,
+					node: node
+				});
+			});
+
 			if (!reprocess && (typeof _cache[cacheKey] !== "undefined")) {
 				node.innerHTML = _cache[cacheKey];
-				MathJaxHelper.typesettingCallbacks.forEach(function(fn) {
+				MathJaxHelper.postTypesettingCallbacks.forEach(function(fn) {
 					fn({
+						cacheKey: cacheKey,
 						originalText: originalNodeContent,
 						fromCache: true,
 						node: node
@@ -233,8 +251,9 @@ var doCachedTypeset = function(firstNode, lastNode) {
 			} else {
 				MathJax.Hub.Queue(["Typeset", MathJax.Hub, node], function() {
 					_cache[cacheKey] = node.innerHTML;
-					MathJaxHelper.typesettingCallbacks.forEach(function(fn) {
+					MathJaxHelper.postTypesettingCallbacks.forEach(function(fn) {
 						fn({
+							cacheKey: cacheKey,
 							originalText: originalNodeContent,
 							fromCache: false,
 							node: node
