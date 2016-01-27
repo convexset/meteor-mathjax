@@ -224,7 +224,7 @@ var doCachedTypeset = function(firstNode, lastNode) {
 			if (!reprocess && (typeof _cache[cacheKey] !== "undefined")) {
 				node.innerHTML = _cache[cacheKey];
 				MathJaxHelper.typesettingCallbacks.forEach(function(fn) {
-					fn.call({
+					fn({
 						originalText: originalNodeContent,
 						fromCache: true,
 						node: node
@@ -234,7 +234,7 @@ var doCachedTypeset = function(firstNode, lastNode) {
 				MathJax.Hub.Queue(["Typeset", MathJax.Hub, node], function() {
 					_cache[cacheKey] = node.innerHTML;
 					MathJaxHelper.typesettingCallbacks.forEach(function(fn) {
-						fn.call({
+						fn({
 							originalText: originalNodeContent,
 							fromCache: false,
 							node: node

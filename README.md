@@ -69,9 +69,6 @@ Default configuration:
             ['$$', '$$'],
             ["\\[", "\\]"]
         ],
-        skipStartupTypeset: true,
-        processEscapes: true,
-        showProcessingMessages: false,
     },
     TeX: {
         extensions: [
@@ -82,6 +79,10 @@ Default configuration:
             autoNumber: "AMS"
         },
     },
+    skipStartupTypeset: true,
+    processEscapes: true,
+    showProcessingMessages: true,
+    messageStyle: "normal",
 }
 ```
 
@@ -107,6 +108,15 @@ To reset equation numbers: `MathJaxHelper.resetEquationNumbers()` (Easy, right?)
 ### Typesetting Callbacks
 
 To add a callback following typesetting, call: `MathJaxHelper.addTypesettingCallback(callbackFunction)`
+
+Callback functions are called with a single argument of the form
+```javascript
+{
+    originalText: originalNodeContent,
+    fromCache: true,  // ... or false, depending on whether there was a cache hit
+    node: node
+}
+```
 
 ### Pre-loading
 
