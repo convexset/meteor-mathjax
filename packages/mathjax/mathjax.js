@@ -16,9 +16,6 @@ MathJaxHelper = (function() {
 				['$$', '$$'],
 				["\\[", "\\]"]
 			],
-			skipStartupTypeset: true,
-			processEscapes: true,
-			showProcessingMessages: false,
 		},
 		TeX: {
 			extensions: [
@@ -29,6 +26,10 @@ MathJaxHelper = (function() {
 				autoNumber: "AMS"
 			},
 		},
+		skipStartupTypeset: true,
+		processEscapes: true,
+		showProcessingMessages: true,
+		messageStyle: "normal",
 	};
 
 	// https://github.com/mathjax/MathJax-third-party-extensions
@@ -115,12 +116,14 @@ MathJaxHelper = (function() {
 
 	});
 
-	PackageUtilities.addImmutablePropertyFunction(mjh, "setDebugConfig", function setDebugConfig() {
-		_config.tex2jax.showProcessingMessages = true;
+	PackageUtilities.addImmutablePropertyFunction(mjh, "configureShowMessages", function configureShowMessages() {
+		_config.showProcessingMessages = true;
+		_config.messageStyle = "normal";
 	});
 
-	PackageUtilities.addImmutablePropertyFunction(mjh, "unsetDebugConfig", function unsetDebugConfig() {
-		_config.tex2jax.showProcessingMessages = false;
+	PackageUtilities.addImmutablePropertyFunction(mjh, "configureHideMessages", function configureHideMessages() {
+		_config.showProcessingMessages = false;
+		_config.messageStyle = "none";
 	});
 
 	PackageUtilities.addImmutablePropertyFunction(mjh, "makeId", function makeId(o) {
