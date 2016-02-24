@@ -1,6 +1,6 @@
 Package.describe({
 	name: 'convexset:mathjax',
-	version: '0.1.3_1',
+	version: '0.1.3_2',
 	summary: 'MathJax for Meteor. Configurable. Extensible.',
 	git: 'https://github.com/convexset/meteor-mathjax',
 	documentation: '../../README.md'
