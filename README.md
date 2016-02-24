@@ -13,6 +13,7 @@ MathJax in Meteor. Configurable with [extensions](http://mathjax.readthedocs.org
 - [Configuration](#configuration)
   - [Script Choice](#script-choice)
   - [MathJax Configuration](#mathjax-configuration)
+  - [Caching Content](#caching-content)
   - [Extensions](#extensions)
   - [Equation Numbering](#equation-numbering)
   - [Typesetting Callbacks](#typesetting-callbacks)
@@ -86,6 +87,14 @@ Default configuration:
 }
 ```
 
+### Caching Content
+
+Set `MathJaxHelper.cacheResults` to `true` to cache the results of typesetting. (Default: `false`)
+
+Call `MathJaxHelper.clearCache()` to clear the cache.
+
+Use `MathJaxHelper.cacheSize` to set the cache size.
+
 ### Extensions
 
 Call `MathJaxHelper.useExtensions(arrayOfExtensions)` to select a list of extensions to use. (See [this](http://mathjax.readthedocs.org/en/latest/options/ThirdParty.html) for more information.)
@@ -112,7 +121,7 @@ To add a callback to be executed before typesetting, call: `MathJaxHelper.addPre
 Callback functions are called with a single argument of the form
 ```javascript
 {
-    cacheKey: cacheKey,
+    cacheKey: cacheKey,  // if the cache is used
     originalText: originalNodeContent,
     node: node
 }
@@ -123,9 +132,10 @@ To add a callback to be executed after typesetting, call: `MathJaxHelper.addPost
 Callback functions are called with a single argument of the form
 ```javascript
 {
-    cacheKey: cacheKey,
+    cacheKey: cacheKey,  // if the cache is used
     originalText: originalNodeContent,
     fromCache: true,  // ... or false, depending on whether there was a cache hit
+                      // available if the cache is used
     node: node
 }
 ```

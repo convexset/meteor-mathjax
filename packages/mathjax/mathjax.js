@@ -64,8 +64,28 @@ MathJaxHelper = (function() {
 		"https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=Accessible",
 	]);
 
+	var _cacheSize = 500;
+	var _cacheResults = false;
 	var _script = mjh.SCRIPT_SRC[0];
 	var _config = PackageUtilities.deepCopy(DEFAULT_CONFIG);
+
+	PackageUtilities.addPropertyGetterAndSetter(mjh, "cacheSize", {
+		get: () => _cacheSize,
+		set: (value) => {
+			if ((0 <= value) && (value <= 100000)) {
+				_cacheSize = Number(value);
+			} else {
+				_cacheSize = 500;
+			}
+		},
+	});
+
+	PackageUtilities.addPropertyGetterAndSetter(mjh, "cacheResults", {
+		get: () => _cacheResults,
+		set: (value) => {
+			_cacheResults = !!_cacheResults;
+		},
+	});
 
 	PackageUtilities.addPropertyGetterAndSetter(mjh, "script", {
 		get: () => _script,
@@ -202,10 +222,50 @@ function onMathJaxReady(callback) {
 }
 
 
+// Typeset
+function doTypeset(firstNode, lastNode) {
+	var alreadyArrivedAtFirstNode = false;
+
+	$(firstNode).parent().contents().each(function(index, node) {
+		if (node === firstNode) {
+			alreadyArrivedAtFirstNode = true;
+		}
+		if (alreadyArrivedAtFirstNode && (node.nodeType === 1)) {
+			var originalNodeContent = node.innerHTML;
+			MathJaxHelper.preTypesettingCallbacks.forEach(function(fn) {
+				fn({
+					originalText: originalNodeContent,
+					node: node
+				});
+			});
+
+			MathJax.Hub.Queue(["Typeset", MathJax.Hub, node], function() {
+				MathJaxHelper.postTypesettingCallbacks.forEach(function(fn) {
+					fn({
+						originalText: originalNodeContent,
+						node: node
+					});
+				});
+			});
+		}
+		return node !== lastNode;
+	});
+}
+
 // Typeset with Cache
 var _cache = {};
-var doCachedTypeset = function(firstNode, lastNode) {
+PackageUtilities.addImmutablePropertyFunction(mjh, "clearCache", function clearCache() {
+	_cache = {};
+});
+
+function doCachedTypeset(firstNode, lastNode) {
 	var alreadyArrivedAtFirstNode = false;
+
+	var cacheKeys = Object.keys(_cache);
+	while (cacheKeys.length > _cacheSize) {
+		var k = cacheKeys.shift();
+		delete _cache[k];
+	}
 
 	$(firstNode).parent().contents().each(function(index, node) {
 		var cacheKey;
@@ -239,15 +299,17 @@ var doCachedTypeset = function(firstNode, lastNode) {
 			});
 
 			if (!reprocess && (typeof _cache[cacheKey] !== "undefined")) {
-				node.innerHTML = _cache[cacheKey];
-				MathJaxHelper.postTypesettingCallbacks.forEach(function(fn) {
-					fn({
-						cacheKey: cacheKey,
-						originalText: originalNodeContent,
-						fromCache: true,
-						node: node
+				setTimeout(function() {
+					node.innerHTML = _cache[cacheKey];
+					MathJaxHelper.postTypesettingCallbacks.forEach(function(fn) {
+						fn({
+							cacheKey: cacheKey,
+							originalText: originalNodeContent,
+							fromCache: true,
+							node: node
+						});
 					});
-				});
+				}, 0);
 			} else {
 				MathJax.Hub.Queue(["Typeset", MathJax.Hub, node], function() {
 					_cache[cacheKey] = node.innerHTML;
@@ -264,7 +326,7 @@ var doCachedTypeset = function(firstNode, lastNode) {
 		}
 		return node !== lastNode;
 	});
-};
+}
 
 var MathJaxTemplates = [
 	Template.mathjax,
@@ -276,7 +338,11 @@ MathJaxTemplates.forEach(function(tmpl) {
 	tmpl.onRendered(function() {
 		var instance = this;
 		onMathJaxReady(function() {
-			doCachedTypeset(instance.firstNode, instance.lastNode);
+			if (_cacheResults) {
+				doCachedTypeset(instance.firstNode, instance.lastNode);
+			} else {
+				doTypeset(instance.firstNode, instance.lastNode);
+			}
 		});
 	});
 });
