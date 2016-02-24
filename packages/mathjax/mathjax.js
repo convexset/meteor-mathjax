@@ -69,6 +69,10 @@ MathJaxHelper = (function() {
 	var _script = mjh.SCRIPT_SRC[0];
 	var _config = PackageUtilities.deepCopy(DEFAULT_CONFIG);
 
+	PackageUtilities.addImmutablePropertyFunction(mjh, "clearCache", function clearCache() {
+		_cache = {};
+	});
+
 	PackageUtilities.addPropertyGetterAndSetter(mjh, "cacheSize", {
 		get: () => _cacheSize,
 		set: (value) => {
@@ -254,10 +258,6 @@ function doTypeset(firstNode, lastNode) {
 
 // Typeset with Cache
 var _cache = {};
-PackageUtilities.addImmutablePropertyFunction(mjh, "clearCache", function clearCache() {
-	_cache = {};
-});
-
 function doCachedTypeset(firstNode, lastNode) {
 	var alreadyArrivedAtFirstNode = false;
 
