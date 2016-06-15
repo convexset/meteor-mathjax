@@ -1,6 +1,11 @@
-/* global PackageUtilities: true */
 /* global MathJaxHelper: true */
 /* global MathJax: true */
+
+import { checkNpmVersions } from 'meteor/tmeasday:check-npm-versions';
+checkNpmVersions({
+  'package-utils': '^0.2.1'
+});
+const PackageUtilities = require('package-utils');
 
 MathJaxHelper = (function() {
 	var _mjh = function MathJaxHelper() {};
