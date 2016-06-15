@@ -3,9 +3,11 @@
 
 import { checkNpmVersions } from 'meteor/tmeasday:check-npm-versions';
 checkNpmVersions({
-  'package-utils': '^0.2.1'
+  'package-utils': '^0.2.1',
+  'underscore' : '^1.8.3',
 });
 const PackageUtilities = require('package-utils');
+const _ = require('underscore');
 
 MathJaxHelper = (function() {
 	var _mjh = function MathJaxHelper() {};
@@ -88,7 +90,7 @@ MathJaxHelper = (function() {
 	PackageUtilities.addPropertyGetterAndSetter(mjh, "cacheResults", {
 		get: () => _cacheResults,
 		set: (value) => {
-			_cacheResults = !!_cacheResults;
+			_cacheResults = !!value;
 		},
 	});
 
